@@ -5,59 +5,19 @@ var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefau
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-Object.defineProperty(exports, "write", {
+Object.defineProperty(exports, "adminWritePost", {
   enumerable: true,
   get: function () {
-    return _write.default;
+    return _adminWritePost.default;
   }
 });
-Object.defineProperty(exports, "getHomePost", {
+Object.defineProperty(exports, "getAuthor", {
   enumerable: true,
   get: function () {
-    return _getHomePost.default;
-  }
-});
-Object.defineProperty(exports, "postDetails", {
-  enumerable: true,
-  get: function () {
-    return _postDetails.default;
-  }
-});
-Object.defineProperty(exports, "trendingAlert", {
-  enumerable: true,
-  get: function () {
-    return _trendingAlerts.default;
-  }
-});
-Object.defineProperty(exports, "filterByCategory", {
-  enumerable: true,
-  get: function () {
-    return _filterByCategory.default;
-  }
-});
-Object.defineProperty(exports, "writeCategories", {
-  enumerable: true,
-  get: function () {
-    return _writeCategories.default;
-  }
-});
-Object.defineProperty(exports, "updatePost", {
-  enumerable: true,
-  get: function () {
-    return _update.default;
+    return _getAuthor.default;
   }
 });
 
-var _write = _interopRequireDefault(require("./write"));
+var _adminWritePost = _interopRequireDefault(require("./admin-write-post"));
 
-var _getHomePost = _interopRequireDefault(require("./get-home-post"));
-
-var _postDetails = _interopRequireDefault(require("./post-details"));
-
-var _trendingAlerts = _interopRequireDefault(require("./trending-alerts"));
-
-var _filterByCategory = _interopRequireDefault(require("./filter-by-category"));
-
-var _writeCategories = _interopRequireDefault(require("./write-categories"));
-
-var _update = _interopRequireDefault(require("./update"));
+var _getAuthor = _interopRequireDefault(require("./get-author"));
