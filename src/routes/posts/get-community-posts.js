@@ -11,7 +11,7 @@ router.get(
   checkValidAdmin,
   async (req, res) => {
     const { db } = await connectToDatabase();
-    const posts = await db.collection('posts').find({}).toArray();
+    const posts = await db.collection('posts').find({ admin: null }).toArray();
     return res.status(200).json({ posts });
   }
 );

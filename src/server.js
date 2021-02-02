@@ -27,7 +27,8 @@ import {
   getAllCategories,
   updateCategory,
   viewCategory,
-  getAllPosts,
+  allPosts,
+  communityPosts,
 } from './routes/posts';
 
 const app = express();
@@ -64,7 +65,8 @@ app.use('/posts/', updatePost);
 app.use('/posts/', getAllCategories);
 app.use('/posts/', writePost);
 app.use('/posts/', getAuthor);
-app.use('/posts/', getAllPosts);
+app.use('/posts/', allPosts);
+app.use('/posts/', communityPosts);
 
 // admin account routes
 app.use('/admin/', category);
