@@ -13,7 +13,7 @@ router.get(
     const { db } = await connectToDatabase();
     const posts = await db
       .collection('posts')
-      .find({ 'status.published': false })
+      .find({ 'status.published': true })
       .toArray();
     return res.status(200).json({ posts });
   }

@@ -32,6 +32,7 @@ import {
   getAllCategories,
   updateCategory,
 } from './routes/posts/categories';
+import { unPublishedPosts } from './routes/posts/filters';
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use('/posts/', allPosts);
 
 // filters
 app.use('/posts/filters/', communityPosts);
+app.use('/posts/filters/', unPublishedPosts);
 
 // categories
 app.use('/posts/categories/', viewCategory);
