@@ -9,17 +9,23 @@ exports.default = void 0;
 
 var _express = _interopRequireDefault(require("express"));
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
 var _mongodb = require("mongodb");
 
-var _adminActionsLogger = _interopRequireDefault(require("../../../utils/admin-actions-logger"));
+var _actionsLogger = _interopRequireDefault(require("../../utils/actions-logger"));
+
+var _checkAuthToken = _interopRequireDefault(require("../../utils/check-auth-token"));
+
+var _errorMessages = require("../../constants/error-messages");
 
 const router = _express.default.Router();
 
-router.post('/account/create', async (req, res) => {
+router.post('/create', _checkAuthToken.default, async (req, res) => {
   const {
-    admin,
+    adminId
+  } = req;
+  const {
     userToMakeAdmin,
     permissions,
     role
@@ -28,26 +34,26 @@ router.post('/account/create', async (req, res) => {
     db
   } = await (0, _db.default)(); // check if admin exist
 
-  const isAdmin = await db.collection('admin').findOne({
-    _id: new _mongodb.ObjectID(admin)
+  const admin = await db.collection('admin').findOne({
+    _id: new _mongodb.ObjectID(adminId)
   });
 
-  if (!isAdmin) {
+  if (!admin) {
     return res.status(404).json({
-      msg: 'This administrative user does not exist'
+      msg: _errorMessages.errorMessages.admin.fourOhFour
     });
   } //check admin permission to make an admin
 
 
-  if (!isAdmin.permissions.account.canMakeAdmin) {
+  if (!admin.permissions.account.canMakeAdmin) {
     return res.status(401).json({
-      msg: 'You do not have the administrative permission to make a user an admin'
+      msg: _errorMessages.errorMessages.admin.fourOhOne
     });
   } //check if user to make an admin exist
 
 
   const isUser = await db.collection('users').findOne({
-    _id: new _mongodb.ObjectID(userToMakeAdmin)
+    email: userToMakeAdmin
   }, {
     projection: {
       password: 0
@@ -56,48 +62,47 @@ router.post('/account/create', async (req, res) => {
 
   if (!isUser) {
     return res.status(404).json({
-      msg: 'The user to make an admin does not have an infocott account'
+      msg: _errorMessages.errorMessages.users.forOhFour
     });
   } //check if user to make an admin already is an admin
 
 
   const isAlreadyAnAdmin = await db.collection('admin').findOne({
-    userId: new _mongodb.ObjectID(userToMakeAdmin)
+    email: userToMakeAdmin
   });
 
   if (isAlreadyAnAdmin) {
     return res.status(409).json({
-      msg: `${isUser.email} is already an admin`
+      msg: _errorMessages.errorMessages.admin.fourOhNine
     });
   } //create new admin
 
 
   const newAdmin = {
     email: isUser.email,
-    userId: isUser._id,
     role,
     permissions,
-    createdBy: isAdmin.email,
+    createdBy: admin.email,
     createdOn: Date.now()
   };
   await db.collection('admin').insertOne({ ...newAdmin
   }, async (err, data) => {
     if (err) {
       return res.status(500).json({
-        msg: 'Database error try again or contact support'
+        msg: _errorMessages.errorMessages.database.fiveOhOh
       });
     } //log admin activity
 
 
-    await (0, _adminActionsLogger.default)({
+    await (0, _actionsLogger.default)({
       type: 'create',
       date: Date.now(),
-      createdBy: isAdmin.email,
+      createdBy: admin.email,
       isSuccess: true,
-      log: `${isAdmin.email} made ${isUser.email} as an admin`
+      log: `${admin.email} made ${isUser.email} as an admin`
     });
     return res.status(201).json({
-      data: `You have successfully made ${isUser.email} an admin`
+      payload: `You have successfully made ${isUser.email} an admin`
     });
   });
 });

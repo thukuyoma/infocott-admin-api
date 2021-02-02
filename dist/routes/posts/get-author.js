@@ -11,27 +11,31 @@ var _express = _interopRequireDefault(require("express"));
 
 var _mongodb = require("mongodb");
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
-var _checkToken = _interopRequireDefault(require("../../../utils/check-token"));
+var _errorMessages = require("../../constants/error-messages");
+
+var _checkAuthToken = _interopRequireDefault(require("../../utils/check-auth-token"));
 
 const router = _express.default.Router();
 
-router.get('/posts/write/:authorEmail', _checkToken.default, async (req, res) => {
+router.get('/write/:authorEmail', _checkAuthToken.default, async (req, res) => {
   const {
     authorEmail
   } = req.params;
-  const userId = req.user.id;
+  const {
+    adminId
+  } = req;
   const {
     db
   } = await (0, _db.default)();
   const admin = await db.collection('admin').findOne({
-    userId: new _mongodb.ObjectID(userId)
+    _id: new _mongodb.ObjectID(adminId)
   });
 
-  if (!admin.permissions.post.canWritePost) {
+  if (!admin.permissions.posts.canWritePost) {
     res.status(401).json({
-      msg: 'Admin permission to write post is required'
+      msg: _errorMessages.errorMessages.post.fourOhOne
     });
   }
 
@@ -41,7 +45,7 @@ router.get('/posts/write/:authorEmail', _checkToken.default, async (req, res) =>
 
   if (!author) {
     res.status(404).json({
-      msg: 'Author does not exist'
+      msg: _errorMessages.errorMessages.users.fourOhFour
     });
   }
 

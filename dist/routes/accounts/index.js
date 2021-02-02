@@ -8,40 +8,40 @@ Object.defineProperty(exports, "__esModule", {
 Object.defineProperty(exports, "createAdmin", {
   enumerable: true,
   get: function () {
-    return _createAdmin.default;
+    return _create.default;
   }
 });
 Object.defineProperty(exports, "removeAdmin", {
   enumerable: true,
   get: function () {
-    return _deleteAdmin.default;
+    return _remove.default;
   }
 });
 Object.defineProperty(exports, "updateAdmin", {
   enumerable: true,
   get: function () {
-    return _updateAdmin.default;
+    return _update.default;
   }
 });
 Object.defineProperty(exports, "getAdmin", {
   enumerable: true,
   get: function () {
-    return _getAdmin.default;
+    return _profile.default;
   }
 });
 Object.defineProperty(exports, "loginAdmin", {
   enumerable: true,
   get: function () {
-    return _loginAdmin.default;
+    return _login.default;
   }
 });
 
-var _createAdmin = _interopRequireDefault(require("./create-admin"));
+var _create = _interopRequireDefault(require("./create"));
 
-var _deleteAdmin = _interopRequireDefault(require("./delete-admin"));
+var _remove = _interopRequireDefault(require("./remove"));
 
-var _updateAdmin = _interopRequireDefault(require("./update-admin"));
+var _update = _interopRequireDefault(require("./update"));
 
-var _getAdmin = _interopRequireDefault(require("./get-admin"));
+var _profile = _interopRequireDefault(require("./profile"));
 
-var _loginAdmin = _interopRequireDefault(require("./login-admin"));
+var _login = _interopRequireDefault(require("./login"));

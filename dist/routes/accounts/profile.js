@@ -11,9 +11,9 @@ var _express = _interopRequireDefault(require("express"));
 
 var _mongodb = require("mongodb");
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
-var _adminActionsLogger = _interopRequireDefault(require("../../../utils/admin-actions-logger"));
+var _actionsLogger = _interopRequireDefault(require("../../utils/actions-logger"));
 
 const router = _express.default.Router();
 
@@ -65,7 +65,7 @@ router.get('/account/:adminId/:adminToGetId', async (req, res) => {
     } //log admin activity
 
 
-    await (0, _adminActionsLogger.default)({
+    await (0, _actionsLogger.default)({
       type: 'get',
       date: Date.now(),
       creator: isAdmin.email,

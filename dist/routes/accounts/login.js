@@ -13,17 +13,16 @@ var _bcrypt = _interopRequireDefault(require("bcrypt"));
 
 var _jsonwebtoken = _interopRequireDefault(require("jsonwebtoken"));
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
-var _emailValidator = _interopRequireDefault(require("../../../utils/email-validator"));
+var _emailValidator = _interopRequireDefault(require("../../utils/email-validator"));
 
-var _adminActionsLogger = _interopRequireDefault(require("../../../utils/admin-actions-logger"));
+var _actionsLogger = _interopRequireDefault(require("../../utils/actions-logger"));
 
 const router = _express.default.Router();
 
 router.post('/login', async (req, res) => {
   // validation
-  res.send('Hello');
   const {
     email,
     password
@@ -56,24 +55,6 @@ router.post('/login', async (req, res) => {
     return res.status(404).json({
       msg: 'This User does not exist'
     });
-  } //check if user is an admin
-
-
-  const isAdmin = await db.collection('admin').findOne({
-    email
-  });
-
-  if (!isAdmin) {
-    return res.status(404).json({
-      msg: 'Admin does not exist'
-    });
-  } //check if admin can login
-
-
-  if (!isAdmin.permissions.account.canLogin) {
-    return res.status(401).json({
-      msg: 'You cannot login contact support'
-    });
   } // compare password with bcrypt
 
 
@@ -83,21 +64,36 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({
       msg: 'Invalid login credentials'
     });
+  } //check if user is an admin
+
+
+  const admin = await db.collection('admin').findOne({
+    email
+  });
+
+  if (!admin) {
+    return res.status(404).json({
+      msg: 'Admin does not exist'
+    });
+  } //check if admin can login
+
+
+  if (!admin.permissions.accounts.canLogin) {
+    return res.status(401).json({
+      msg: 'You cannot login contact support'
+    });
   } //remove the password from the user object rather than run another query to db
 
 
   delete user.password;
   const payload = {
-    user: {
-      userId: user._id,
-      adminId: isAdmin._id
-    }
+    adminId: admin._id
   };
   await _jsonwebtoken.default.sign(payload, process.env.JWT_SECRET_TOKEN, {
     expiresIn: 36000
   }, async (err, token) => {
     if (err) throw err;
-    await (0, _adminActionsLogger.default)({
+    await (0, _actionsLogger.default)({
       type: 'login',
       date: Date.now(),
       creator: email,
@@ -106,7 +102,7 @@ router.post('/login', async (req, res) => {
     });
     return res.status(200).json({
       token,
-      admin: user
+      profile: admin
     });
   });
 });

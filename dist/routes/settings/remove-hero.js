@@ -9,17 +9,17 @@ exports.default = void 0;
 
 var _express = _interopRequireDefault(require("express"));
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
 var _mongodb = require("mongodb");
 
-var _adminActionsLogger = _interopRequireDefault(require("../../../utils/admin-actions-logger"));
+var _actionsLogger = _interopRequireDefault(require("../../utils/actions-logger"));
 
-var _checkToken = _interopRequireDefault(require("../../../utils/check-token"));
+var _checkAuthToken = _interopRequireDefault(require("../../utils/check-auth-token"));
 
 const router = _express.default.Router();
 
-router.delete('/settings/heroes/:postId', _checkToken.default, async (req, res) => {
+router.delete('/settings/heroes/:postId', _checkAuthToken.default, async (req, res) => {
   const {
     postId
   } = req.params;
@@ -64,7 +64,7 @@ router.delete('/settings/heroes/:postId', _checkToken.default, async (req, res) 
       });
     }
 
-    await (0, _adminActionsLogger.default)({
+    await (0, _actionsLogger.default)({
       type: 'settings',
       date: Date.now(),
       creator: admin.email,

@@ -35,7 +35,7 @@ router.post('/create', checkAuthToken, async (req, res) => {
     .findOne({ email: userToMakeAdmin }, { projection: { password: 0 } });
   if (!isUser) {
     return res.status(404).json({
-      msg: errorMessages.user.forOhour,
+      msg: errorMessages.users.forOhFour,
     });
   }
 

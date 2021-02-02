@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.permissions = void 0;
 const permissions = {
-  // account
+  // accounts
   canMakeAdmin: false,
   canDeleteAdmin: false,
   canBlockUser: false,

@@ -26,7 +26,7 @@ async function _default(req, res, next) {
       if (err) return res.status(401).json({
         msg: 'Authorization denied invalid token'
       });
-      req.user = decoded.user;
+      req.adminId = decoded.adminId;
       next();
     });
   } catch (err) {

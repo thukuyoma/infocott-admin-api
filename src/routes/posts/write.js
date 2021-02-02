@@ -6,10 +6,11 @@ import { ObjectID } from 'mongodb';
 import connectToDatabase from '../../config/db';
 import checkToken from '../../utils/check-auth-token';
 import uploader from '../../utils/uploader';
+import { errorMessages } from '../../constants/error-messages';
 
 const router = express.Router();
 router.post(
-  '/posts/write',
+  '/write',
   checkToken,
   uploader('/images/posts/').single('image'),
   async (req, res) => {
@@ -19,7 +20,6 @@ router.post(
     const {
       title,
       tags,
-      hashTags,
       category,
       body,
       description,
@@ -27,45 +27,28 @@ router.post(
       imageCaption,
       imageSource,
       allowComment,
-      writtenByAdmin,
     } = post;
 
     const path = file ? file.path : '';
 
-    const userId = req.user.id;
+    const { adminId } = req;
 
-    const user = await db
-      .collection('users')
-      .findOne({ _id: new ObjectID(userId) });
-
-    if (!user) {
-      return res.status(401).json({ msg: 'User does not exist' });
-    }
-
-    const admin = await db.collection('admin').findOne({ email: user.email });
+    const admin = await db
+      .collection('admin')
+      .findOne({ _id: new ObjectID(adminId) });
     if (!admin) {
-      return res.status(401).json({ msg: 'Admin authorization required' });
+      return res.status(404).json({ msg: errorMessages.admin.fourOhFour });
     }
-
-    // res.send({ admin });
 
     // check if the associated author exist
     const isAuthor = await db.collection('users').findOne({ email: author });
-    if (author) {
-      if (!isAuthor) {
-        return res
-          .status(404)
-          .json({ msg: 'Author to be associated with this post does exist' });
-      }
+    if (author && !isAuthor) {
+      return res.status(404).json({ msg: errorMessages.posts.AuthorNotFound });
     }
 
-    if (!admin.permissions.post.canWritePost) {
-      return res
-        .status(401)
-        .json({ msg: 'Admin permission to write post is required' });
+    if (!admin.permissions.posts.canWritePost) {
+      return res.status(401).json({ msg: errorMessages.admin.fourOhOne });
     }
-
-    // res.send({ canWritePost: admin.permissions.post.canWritePost });
 
     //validate post
     const validatedPost = postValidator({ ...post, image: path });
@@ -79,15 +62,11 @@ router.post(
     const postMarkup = {
       title,
       tags: JSON.parse(tags),
-      hashTags: JSON.parse(hashTags),
       category: category.toLowerCase(),
       body,
       description,
-      createdByAdminId: admin._id,
-      author: author
-        ? `${isAuthor.firstName} ${isAuthor.lastName}`
-        : `${user.firstName} ${user.lastName}`,
-      authorId: author ? isAuthor._id : user._id,
+      author: author ? author : admin.email,
+      admin: adminId,
       status: {
         hide: false,
         draft: false,
@@ -126,7 +105,7 @@ router.post(
               .collection('posts')
               .findOne({ _id: new ObjectID(data.insertedId) }, (err, data) => {
                 if (err) return res.status(500).json({ msg: err });
-                return res.status(201).json({ postSlug: data.slug });
+                return res.status(201).json({ slug: data.slug });
               });
           }
         );

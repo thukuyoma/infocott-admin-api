@@ -9,11 +9,11 @@ exports.default = void 0;
 
 var _express = _interopRequireDefault(require("express"));
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
 var _mongodb = require("mongodb");
 
-var _adminActionsLogger = _interopRequireDefault(require("../../../utils/admin-actions-logger"));
+var _actionsLogger = _interopRequireDefault(require("../../utils/actions-logger"));
 
 const router = _express.default.Router();
 
@@ -97,7 +97,7 @@ router.post('/settings/set-hero', async (req, res) => {
       });
     }
 
-    await (0, _adminActionsLogger.default)({
+    await (0, _actionsLogger.default)({
       type: 'settings',
       date: Date.now(),
       creator: admin.email,

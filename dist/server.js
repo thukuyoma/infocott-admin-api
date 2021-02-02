@@ -16,11 +16,9 @@ var _bodyParser = _interopRequireDefault(require("body-parser"));
 
 var _accounts = require("./routes/accounts");
 
-var _settings = require("./routes/admin/settings");
+var _settings = require("./routes/settings");
 
-var _categories = require("./routes/admin/categories");
-
-var _posts = require("./routes/admin/posts");
+var _posts = require("./routes/posts");
 
 const app = (0, _express.default)(); //middlewares
 
@@ -50,18 +48,18 @@ app.use('/accounts/', _accounts.loginAdmin); // app.use('/accounts/', profile);
 // app.use('/posts/', filterByCategory);
 // app.use('/posts/', writeCategories);
 // app.use('/posts/', postDetails);
-// app.use('/posts/', updatePost);
-// admin account routes
 
-app.use('/admin/', _categories.category);
-app.use('/admin/', _categories.updateCategory);
-app.use('/admin/', _categories.viewCategory);
-app.use('/admin/', _categories.getAllCategories);
+app.use('/posts/', _posts.updatePost);
+app.use('/posts/', _posts.getAllCategories);
+app.use('/posts/', _posts.writePost);
+app.use('/posts/', _posts.getAuthor); // admin account routes
+
+app.use('/admin/', _posts.category);
+app.use('/admin/', _posts.updateCategory);
+app.use('/admin/', _posts.viewCategory);
 app.use('/admin/', _settings.setHero);
 app.use('/admin/', _settings.getHeroes);
 app.use('/admin/', _settings.setPostAlert);
-app.use('/admin/', _posts.adminWritePost);
-app.use('/admin/', _posts.getAuthor);
 app.use('/admin/', _settings.removeHero);
 app.get('/hello', (req, res) => {
   console.log('Hello');

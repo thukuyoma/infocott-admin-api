@@ -20,7 +20,8 @@ import {
   setPostAlert,
 } from './routes/settings';
 import {
-  adminWritePost,
+  writePost,
+  updatePost,
   getAuthor,
   category,
   getAllCategories,
@@ -58,18 +59,18 @@ app.use('/accounts/', loginAdmin);
 // app.use('/posts/', filterByCategory);
 // app.use('/posts/', writeCategories);
 // app.use('/posts/', postDetails);
-// app.use('/posts/', updatePost);
+app.use('/posts/', updatePost);
+app.use('/posts/', getAllCategories);
+app.use('/posts/', writePost);
+app.use('/posts/', getAuthor);
 
 // admin account routes
 app.use('/admin/', category);
 app.use('/admin/', updateCategory);
 app.use('/admin/', viewCategory);
-app.use('/admin/', getAllCategories);
 app.use('/admin/', setHero);
 app.use('/admin/', getHeroes);
 app.use('/admin/', setPostAlert);
-app.use('/admin/', adminWritePost);
-app.use('/admin/', getAuthor);
 app.use('/admin/', removeHero);
 
 app.get('/hello', (req, res) => {

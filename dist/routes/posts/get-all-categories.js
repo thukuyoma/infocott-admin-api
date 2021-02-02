@@ -9,7 +9,7 @@ exports.default = void 0;
 
 var _express = _interopRequireDefault(require("express"));
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
 var _mongodb = require("mongodb");
 

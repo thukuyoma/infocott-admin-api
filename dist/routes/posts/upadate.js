@@ -11,21 +11,23 @@ var _express = _interopRequireDefault(require("express"));
 
 var _slugify = _interopRequireDefault(require("slugify"));
 
-var _cloudUploader = _interopRequireDefault(require("../../../utils/cloud-uploader"));
+var _cloudUploader = _interopRequireDefault(require("../../utils/cloud-uploader"));
 
-var _postValidator = _interopRequireDefault(require("../../../utils/post-validator"));
+var _postValidator = _interopRequireDefault(require("../../utils/post-validator"));
 
 var _mongodb = require("mongodb");
 
-var _db = _interopRequireDefault(require("../../../config/db"));
+var _db = _interopRequireDefault(require("../../config/db"));
 
-var _checkToken = _interopRequireDefault(require("../../../utils/check-token"));
+var _checkAuthToken = _interopRequireDefault(require("../../utils/check-auth-token"));
 
-var _uploader = _interopRequireDefault(require("../../../utils/uploader"));
+var _uploader = _interopRequireDefault(require("../../utils/uploader"));
+
+var _errorMessages = require("../../constants/error-messages");
 
 const router = _express.default.Router();
 
-router.post('/posts/write', _checkToken.default, (0, _uploader.default)('/images/posts/').single('image'), async (req, res) => {
+router.put('/update/:postId', _checkAuthToken.default, (0, _uploader.default)('/images/posts/').single('image'), async (req, res) => {
   //extract all request data
   const {
     db
@@ -37,58 +39,57 @@ router.post('/posts/write', _checkToken.default, (0, _uploader.default)('/images
   const {
     title,
     tags,
-    hashTags,
     category,
     body,
     description,
     author,
     imageCaption,
     imageSource,
-    allowComment,
-    writtenByAdmin
+    allowComment
   } = post;
   const path = file ? file.path : '';
-  const userId = req.user.id;
-  const user = await db.collection('users').findOne({
-    _id: new _mongodb.ObjectID(userId)
-  });
-
-  if (!user) {
-    return res.status(401).json({
-      msg: 'User does not exist'
-    });
-  }
-
+  const {
+    adminId
+  } = req;
+  const {
+    postId
+  } = req.params;
   const admin = await db.collection('admin').findOne({
-    email: user.email
+    _id: new _mongodb.ObjectID(adminId)
   });
 
   if (!admin) {
-    return res.status(401).json({
-      msg: 'Admin authorization required'
+    return res.status(404).json({
+      msg: _errorMessages.errorMessages.admin.fourOhFour
     });
-  } // res.send({ admin });
-  // check if the associated author exist
+  } // check if the associated author exist
 
 
   const isAuthor = await db.collection('users').findOne({
     email: author
   });
 
-  if (author) {
-    if (!isAuthor) {
-      return res.status(404).json({
-        msg: 'Author to be associated with this post does exist'
-      });
-    }
+  if (author && !isAuthor) {
+    return res.status(404).json({
+      msg: _errorMessages.errorMessages.posts.AuthorNotFound
+    });
   }
 
-  if (!admin.permissions.post.canWritePost) {
+  if (!admin.permissions.posts.canUpdatePost) {
     return res.status(401).json({
-      msg: 'Admin permission to write post is required'
+      msg: _errorMessages.errorMessages.admin.fourOhOne
     });
-  } // res.send({ canWritePost: admin.permissions.post.canWritePost });
-  //validate post
+  }
+
+  const postToUpdate = await db.collection('posts').findOne({
+    _id: new _mongodb.ObjectID(postId)
+  });
+
+  if (!postToUpdate) {
+    return res.status(404).json({
+      msg: _errorMessages.errorMessages.posts.fourOhFour
+    });
+  } //validate post
 
 
   const validatedPost = (0, _postValidator.default)({ ...post,
@@ -103,16 +104,19 @@ router.post('/posts/write', _checkToken.default, (0, _uploader.default)('/images
 
 
   const imageUrl = await (0, _cloudUploader.default)(path, [...post.tags]);
+  const slug = (0, _slugify.default)(title, {
+    lower: true,
+    strict: true,
+    remove: /[*+~.()%#^*'"!:@_]/g
+  });
   const postMarkup = {
     title,
     tags: JSON.parse(tags),
-    hashTags: JSON.parse(hashTags),
     category: category.toLowerCase(),
     body,
     description,
-    createdByAdminId: admin._id,
-    author: author ? `${isAuthor.firstName} ${isAuthor.lastName}` : `${user.firstName} ${user.lastName}`,
-    authorId: author ? isAuthor._id : user._id,
+    author: author ? author : admin.email,
+    admin: adminId,
     status: {
       hide: false,
       draft: false,
@@ -122,42 +126,28 @@ router.post('/posts/write', _checkToken.default, (0, _uploader.default)('/images
       url: imageUrl,
       caption: imageCaption && imageCaption,
       source: imageSource && imageSource
-    } : null,
+    } : postToUpdate.image !== null ? post.image : null,
     allowComment: JSON.parse(allowComment),
-    timestamp: Date.now()
-  };
-  const slug = (0, _slugify.default)(title, {
-    lower: true,
-    strict: true,
-    remove: /[*+~.()%#^*'"!:@_]/g
-  }); //save to database
+    timestamp: Date.now(),
+    slug: `${slug}-${postId}`
+  }; //Update database
 
-  await db.collection('posts').insertOne(postMarkup, async (err, data) => {
-    if (err) return res.status(500).json({
-      msg: err
-    });
-    await db.collection('posts').updateOne({
-      _id: new _mongodb.ObjectID(data.insertedId)
-    }, {
-      $set: {
-        slug: `${slug}-${data.insertedId}`
-      }
-    }, {
-      upsert: true
-    }, async (err, slug) => {
-      if (err) return res.status(500).json({
+  await db.collection('posts').updateOne({
+    _id: new _mongodb.ObjectID(postId)
+  }, {
+    $set: { ...postMarkup
+    }
+  }, {
+    upsert: true
+  }, async (err, data) => {
+    if (err) {
+      return res.status(500).json({
         msg: err
       });
-      await db.collection('posts').findOne({
-        _id: new _mongodb.ObjectID(data.insertedId)
-      }, (err, data) => {
-        if (err) return res.status(500).json({
-          msg: err
-        });
-        return res.status(201).json({
-          postSlug: data.slug
-        });
-      });
+    }
+
+    return res.status(201).json({
+      slug: `${slug}-${postId}`
     });
   });
 });
