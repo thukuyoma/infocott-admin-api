@@ -23,13 +23,15 @@ import {
   writePost,
   updatePost,
   getAuthor,
-  category,
-  getAllCategories,
-  updateCategory,
-  viewCategory,
   allPosts,
   communityPosts,
 } from './routes/posts';
+import {
+  viewCategory,
+  category,
+  getAllCategories,
+  updateCategory,
+} from './routes/posts/categories';
 
 const app = express();
 
@@ -66,12 +68,18 @@ app.use('/posts/', getAllCategories);
 app.use('/posts/', writePost);
 app.use('/posts/', getAuthor);
 app.use('/posts/', allPosts);
-app.use('/posts/', communityPosts);
+
+// filters
+app.use('/posts/filters/', communityPosts);
+
+// categories
+app.use('/posts/categories/', viewCategory);
+app.use('/posts/categories/', viewCategory);
+app.use('/posts/categories/', updateCategory);
+app.use('/posts/categories/', viewCategory);
 
 // admin account routes
 app.use('/admin/', category);
-app.use('/admin/', updateCategory);
-app.use('/admin/', viewCategory);
 app.use('/admin/', setHero);
 app.use('/admin/', getHeroes);
 app.use('/admin/', setPostAlert);
@@ -84,7 +92,7 @@ app.get('/hello', (req, res) => {
 
 app.get('/', (req, res) => {
   console.log('Hello');
-  res.status(200).json({ message: ' Welcome to Node.js & Express ' });
+  res.status(200).json({ message: ' Welcome to Nsode.js & Express ' });
 });
 
 const PORT = process.env.PORT || 5005;

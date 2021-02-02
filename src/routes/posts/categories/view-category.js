@@ -1,6 +1,6 @@
 import express from 'express';
-import connectToDatabase from '../../config/db';
 import { ObjectID } from 'mongodb';
+import connectToDatabase from '../../../config/db';
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.get('/categories/:categoryId', async (req, res) => {
     return res.status(401).json({ msg: 'Category to update is required' });
   }
 
-  const { db } = await connectToDatabase();
+  const { db } = await connectToDatabase;
 
   const category = await db
     .collection('categories')

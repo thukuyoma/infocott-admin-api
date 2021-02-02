@@ -1,12 +1,17 @@
 import express from 'express';
-import connectToDatabase from '../../config/db';
+import connectToDatabase from '../../../config/db';
 import { ObjectID } from 'mongodb';
-import adminActionsLogger from '../../utils/actions-logger';
+import adminActionsLogger from '../../../utils/actions-logger';
 
 const router = express.Router();
 
-router.post('/categories/category', async (req, res) => {
+router.put('/categories/:categoryId/update', async (req, res) => {
+  const { categoryId } = req.params;
   const { createdBy, title, description } = req.body;
+
+  if (!categoryId) {
+    return res.status(401).json({ msg: 'Category to update is required' });
+  }
   if (!createdBy) {
     return res.status(401).json({ msg: 'Authorization is required' });
   }
@@ -25,52 +30,59 @@ router.post('/categories/category', async (req, res) => {
   if (!admin) {
     return res.status(401).send('Authorization is required');
   }
-  if (!admin.permissions.post.canCreateCategory) {
-    return res.status(401).json({
-      msg: 'You dont have the adminstrative permission to create a category',
-    });
+  if (!admin.permissions.post.canUpdateCategory) {
+    return res
+      .status(401)
+      .send('You dont have the adminstrative permission to update a category');
   }
 
   const category = await db
     .collection('categories')
-    .findOne({ title: title.toLowerCase() });
-  if (category) {
-    return res.status(409).json({ msg: `${title} Category already exist` });
+    .findOne({ _id: new ObjectID(categoryId) });
+
+  if (!category) {
+    return res.status(404).json({ msg: `${title} Category does not exist` });
   }
 
-  const newCategory = {
+  const updateCategory = {
     createdBy,
-    title: title.toLowerCase(),
+    title,
     description,
     timestamp: Date.now(),
   };
 
-  await db
-    .collection('categories')
-    .insertOne(newCategory, async (err, data) => {
+  await db.collection('categories').updateOne(
+    { _id: new ObjectID(categoryId) },
+    {
+      $set: {
+        ...updateCategory,
+      },
+    },
+    async (err, data) => {
       if (err) {
         await adminActionsLogger({
-          type: 'create',
+          type: 'update',
           date: Date.now(),
           creator: admin._id,
           isSuccess: false,
-          log: `${admin.email} denied permission to create ${title} category`,
+          log: `${admin.email} denied permission to update ${title} category`,
         });
         return res
           .status(500)
           .json({ msg: 'internal database error, try again' });
       }
       await adminActionsLogger({
-        type: 'create',
+        type: 'update',
         date: Date.now(),
         creator: admin._id,
         isSuccess: true,
-        log: `${admin.email} added ${title} to categories`,
+        log: `${admin.email} updated ${title} category details`,
       });
       return res
-        .status(201)
-        .json({ payload: { msg: `${title} category created` } });
-    });
+        .status(200)
+        .json({ payload: { msg: `${title} category updated successfully` } });
+    }
+  );
 });
 
 export default router;
