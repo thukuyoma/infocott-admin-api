@@ -19,20 +19,19 @@ import {
   setHero,
   setPostAlert,
 } from './routes/settings';
-import {
-  writePost,
-  updatePost,
-  getAuthor,
-  allPosts,
-  communityPosts,
-} from './routes/posts';
+import { writePost, updatePost, getAuthor, allPosts } from './routes/posts';
 import {
   viewCategory,
   category,
   getAllCategories,
   updateCategory,
 } from './routes/posts/categories';
-import { unPublishedPosts } from './routes/posts/filters';
+import {
+  communityPosts,
+  publishedPosts,
+  unPublishedPosts,
+  byCategory,
+} from './routes/posts/filters';
 
 const app = express();
 
@@ -73,6 +72,8 @@ app.use('/posts/', allPosts);
 // filters
 app.use('/posts/filters/', communityPosts);
 app.use('/posts/filters/', unPublishedPosts);
+app.use('/posts/filters/', publishedPosts);
+app.use('/posts/filters/', byCategory);
 
 // categories
 app.use('/posts/categories/', viewCategory);
