@@ -1,26 +1,21 @@
 import express from 'express';
 import connectToDatabase from '../../../config/db';
-import { ObjectID } from 'mongodb';
 import adminActionsLogger from '../../../utils/actions-logger';
-import { errorMessages } from '../../../constants/error-messages';
 import checkAuthToken from '../../../utils/check-auth-token';
 import checkValidAdmin from '../../../utils/check-valid-admin';
 import checkPermission from '../../../utils/check-permission';
+import { errorMessages } from '../../../constants/error-messages';
 
 const router = express.Router();
 
-router.put(
-  '/:categoryTitle',
+router.post(
+  '/',
   checkAuthToken,
   checkValidAdmin,
-  checkPermission({ service: 'posts', permit: 'canUpdateCategory' }),
+  checkPermission({ service: 'posts', permit: 'canCreateCategory' }),
   async (req, res) => {
-    const { categoryTitle } = req.params;
-    const { adminEmail: actionAdminEmail } = req;
     const { title, description } = req.body;
-    if (!categoryTitle) {
-      return res.status(422).json({ msg: errorMessages.category.catRequired });
-    }
+    const { adminEmail: actionAdminEmail } = req;
     if (!title) {
       return res
         .status(422)
@@ -36,42 +31,43 @@ router.put(
 
     const category = await db
       .collection('categories')
-      .findOne({ title: categoryTitle });
+      .findOne({ title: title.toLowerCase() });
 
-    if (!category) {
-      return res.status(404).json({ msg: errorMessages.category.notFound });
+    if (category) {
+      return res.status(409).json({ msg: errorMessages.category.isExist });
     }
 
-    const updateCategory = {
+    const newCategory = {
       createdBy: actionAdminEmail,
       title: title.toLowerCase(),
       description,
       timestamp: Date.now(),
     };
 
-    await db.collection('categories').updateOne(
-      { title: categoryTitle },
-      {
-        $set: {
-          ...updateCategory,
-        },
-      },
-      async (err, data) => {
+    await db
+      .collection('categories')
+      .insertOne(newCategory, async (err, data) => {
         if (err) {
+          await adminActionsLogger({
+            type: 'create',
+            date: Date.now(),
+            creator: actionAdminEmail,
+            isSuccess: false,
+            log: `${actionAdminEmail} denied permission to create ${title} category`,
+          });
           return res
             .status(500)
             .json({ msg: errorMessages.database.serverError });
         }
         await adminActionsLogger({
-          type: 'update',
+          type: 'create',
           date: Date.now(),
           creator: actionAdminEmail,
           isSuccess: true,
-          log: `${actionAdminEmail} updated ${title} category details`,
+          log: `${actionAdminEmail} added ${title} to categories`,
         });
-        return res.status(200).json(`${title} category updated successfully`);
-      }
-    );
+        return res.status(201).json(`${title} category created`);
+      });
   }
 );
 

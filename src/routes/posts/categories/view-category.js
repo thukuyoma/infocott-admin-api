@@ -1,29 +1,24 @@
 import express from 'express';
-import { ObjectID } from 'mongodb';
 import connectToDatabase from '../../../config/db';
+import { errorMessages } from '../../../constants/error-messages';
 
 const router = express.Router();
 
-router.get('/categories/:categoryId', async (req, res) => {
-  const { categoryId } = req.params;
-
-  if (!categoryId) {
-    return res.status(401).json({ msg: 'Category to update is required' });
+router.get('/:categoryTitle', async (req, res) => {
+  const { categoryTitle } = req.params;
+  if (!categoryTitle) {
+    return res.status(422).json({ msg: errorMessages.category.catRequired });
   }
-
-  const { db } = await connectToDatabase;
-
+  const { db } = await connectToDatabase();
   const category = await db
     .collection('categories')
-    .findOne({ _id: new ObjectID(categoryId) });
+    .findOne({ title: categoryTitle.toLocaleLowerCase() });
 
   if (!category) {
-    return res.status(404).json({ msg: 'Category does not exist' });
+    return res.status(404).json({ msg: errorMessages.category.notFound });
   }
   return res.status(200).json({
-    payload: {
-      category,
-    },
+    category,
   });
 });
 

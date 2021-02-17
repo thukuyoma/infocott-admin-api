@@ -4,27 +4,37 @@ import cors from 'cors';
 import morgan from 'morgan';
 import colors from 'colors';
 import bodyParser from 'body-parser';
-import { register, login, profile } from './routes/accounts';
 
 import {
+  register,
+  login,
+  profile,
+  userChecker,
+  adminChecker,
+  getProfile,
   createAdmin,
   removeAdmin,
   updateAdmin,
   getAdmin,
   loginAdmin,
+  getPublicAdmin,
+  allPublicAdmins,
 } from './routes/accounts';
+
 import {
   getHeroes,
-  removeHero,
+  getSections,
   setHero,
   setPostAlert,
+  setSection,
 } from './routes/settings';
 import { writePost, updatePost, getAuthor, allPosts } from './routes/posts';
 import {
   viewCategory,
-  category,
   getAllCategories,
   updateCategory,
+  createCategory,
+  deleteCategory,
 } from './routes/posts/categories';
 import {
   communityPosts,
@@ -39,21 +49,26 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use('/public', express.static('public'));
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.resolve(__dirname, 'build')));
+} else {
+  app.use('/public', express.static('public'));
+}
 
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 dotenv.config();
-
-app.get('/test', function (req, res) {
-  res.status(200).json('Hello World!');
-});
 
 // app.use('/accounts/', register);
 app.use('/accounts/', createAdmin);
 app.use('/accounts/', removeAdmin);
 app.use('/accounts/', updateAdmin);
-app.use('/accounts/', getAdmin);
+app.use('/accounts/', getProfile);
 app.use('/accounts/', loginAdmin);
+app.use('/accounts/', userChecker);
+app.use('/accounts/', getPublicAdmin);
+app.use('/accounts/', allPublicAdmins);
+
 // app.use('/accounts/', profile);
 
 //post
@@ -64,7 +79,6 @@ app.use('/accounts/', loginAdmin);
 // app.use('/posts/', writeCategories);
 // app.use('/posts/', postDetails);
 app.use('/posts/', updatePost);
-app.use('/posts/', getAllCategories);
 app.use('/posts/', writePost);
 app.use('/posts/', getAuthor);
 app.use('/posts/', allPosts);
@@ -76,26 +90,21 @@ app.use('/posts/filters/', publishedPosts);
 app.use('/posts/filters/', byCategory);
 
 // categories
-app.use('/posts/categories/', viewCategory);
-app.use('/posts/categories/', viewCategory);
+app.use('/posts/categories/', getAllCategories);
+app.use('/posts/categories/', createCategory);
 app.use('/posts/categories/', updateCategory);
 app.use('/posts/categories/', viewCategory);
+app.use('/posts/categories/', deleteCategory);
 
-// admin account routes
-app.use('/admin/', category);
-app.use('/admin/', setHero);
-app.use('/admin/', getHeroes);
-app.use('/admin/', setPostAlert);
-app.use('/admin/', removeHero);
-
-app.get('/hello', (req, res) => {
-  console.log('Hello');
-  res.send('Hello world we are here now');
-});
+// settings
+app.use('/settings/', setHero);
+app.use('/settings/', getHeroes);
+app.use('/settings/', setPostAlert);
+app.use('/settings/', setSection);
+app.use('/settings/', getSections);
 
 app.get('/', (req, res) => {
-  console.log('Hello');
-  res.status(200).json({ message: ' Welcome to Nsode.js & Express ' });
+  return res.status(200).json('Welcome to odemru technologies');
 });
 
 const PORT = process.env.PORT || 5005;

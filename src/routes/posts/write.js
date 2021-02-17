@@ -37,7 +37,7 @@ router.post(
       .collection('admin')
       .findOne({ _id: new ObjectID(adminId) });
     if (!admin) {
-      return res.status(404).json({ msg: errorMessages.admin.fourOhFour });
+      return res.status(404).json({ msg: errorMessages.admin.notFound });
     }
 
     // check if the associated author exist

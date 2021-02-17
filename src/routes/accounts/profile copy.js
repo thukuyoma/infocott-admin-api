@@ -1,28 +1,33 @@
 import express from 'express';
 import { ObjectID } from 'mongodb';
 import connectToDatabase from '../../config/db';
-import { errorMessages } from '../../constants/error-messages';
 import adminActionsLogger from '../../utils/actions-logger';
-import checkAuthToken from '../../utils/check-auth-token';
 import checkPermission from '../../utils/check-permission';
 import checkValidAdmin from '../../utils/check-valid-admin';
 
 const router = express.Router();
 router.get(
-  '/profile/:email',
-  checkAuthToken,
+  '/account/:email',
   checkValidAdmin,
   checkPermission('accounts', 'canGetAdmin'),
   async (req, res) => {
-    const { adminId: actionAdminId, adminEmail: actionAdminEmail } = req;
     const { email } = req.params;
     const { db } = await connectToDatabase();
 
+    //check admin permission to update another admin
+    if (!isAdmin.permissions.account.canGetAdmin) {
+      return res.status(401).json({
+        msg: 'You do not have the permission to see this admin',
+      });
+    }
+
     //check if admin to get exist
-    const admin = await db.collection('admin').findOne({ email });
-    if (!admin) {
+    const isAdminToGet = await db
+      .collection('admin')
+      .findOne({ _id: new ObjectID(adminToGetId) });
+    if (!isAdminToGet) {
       return res.status(404).json({
-        msg: errorMessages.admin.notFound,
+        msg: `The Admin you want to get does not exist`,
       });
     }
 
@@ -32,16 +37,16 @@ router.get(
       .findOne({ _id: new ObjectID(adminToGetId) }, async (err, data) => {
         if (err) {
           return res.status(500).json({
-            msg: errorMessages.database.serverError,
+            msg: 'Database error try again or contact support',
           });
         }
         //log admin activity
         await adminActionsLogger({
           type: 'get',
           date: Date.now(),
-          creator: actionAdminEmail,
+          creator: isAdmin.email,
           isSuccess: true,
-          log: `${actionAdminEmail} viewed ${admin.email} admin account`,
+          log: `${isAdmin.email} viewed ${isAdminToGet.email} admin account`,
         });
         return res.status(201).json({ data });
       });

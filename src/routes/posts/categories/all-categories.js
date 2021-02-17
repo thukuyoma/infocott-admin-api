@@ -4,15 +4,12 @@ import { ObjectID } from 'mongodb';
 
 const router = express.Router();
 
-router.get('/categories', async (req, res) => {
+router.get('/', async (req, res) => {
   const { db } = await connectToDatabase();
 
   const categories = await db.collection('categories').find({}).toArray();
-
   return res.status(200).json({
-    payload: {
-      categories,
-    },
+    categories,
   });
 });
 

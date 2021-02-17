@@ -9,7 +9,8 @@ export default async function checkValidAdmin(req, res, next) {
     .collection('admin')
     .findOne({ _id: new ObjectID(adminId) });
   if (!admin) {
-    return res.status(404).json({ msg: errorMessages.admin.fourOhFour });
+    return res.status(404).json({ msg: errorMessages.admin.notFound });
   }
+  req.adminEmail = admin.email;
   next();
 }

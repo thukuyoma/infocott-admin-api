@@ -1,66 +1,58 @@
 import express from 'express';
 import { ObjectID } from 'mongodb';
 import connectToDatabase from '../../config/db';
+import { errorMessages } from '../../constants/error-messages';
 import adminActionsLogger from '../../utils/actions-logger';
+import checkAuthToken from '../../utils/check-auth-token';
+import checkPermission from '../../utils/check-permission';
+import checkValidAdmin from '../../utils/check-valid-admin';
 
 const router = express.Router();
-router.put('/account/update', async (req, res) => {
-  const { admin, adminToUpdate, permissions, role } = req.body;
-  const { db } = await connectToDatabase();
+router.put(
+  '/:email',
+  checkAuthToken,
+  checkValidAdmin,
+  checkPermission({ service: 'accounts', permit: 'canUpdateAdmin' }),
+  async (req, res) => {
+    const { adminEmail: actionAdminEmail } = req;
+    const { permissions, role } = req.body;
+    const { email } = req.params;
+    const { db } = await connectToDatabase();
 
-  // check if admin exist
-  const isAdmin = await db
-    .collection('admin')
-    .findOne({ _id: new ObjectID(admin) });
-  if (!isAdmin) {
-    return res.status(404).json({
-      msg: 'This admin user does not exist',
-    });
-  }
+    //check if admin to update exist
+    const admin = await db.collection('admin').findOne({ email });
+    if (!admin) {
+      return res.status(404).json({
+        msg: errorMessages.admin.notFound,
+      });
+    }
 
-  //check admin permission to update another admin
-  if (!isAdmin.permissions.account.canUpdateAdmin) {
-    return res.status(401).json({
-      msg:
-        'You do not have the administrative permission to update this admin user',
-    });
-  }
-
-  //check if admin to update exist
-  const isAdminToUpdateExist = await db
-    .collection('admin')
-    .findOne({ _id: new ObjectID(adminToUpdate) });
-  if (!isAdminToUpdateExist) {
-    return res.status(404).json({
-      msg: `The admin user to update does not exist`,
-    });
-  }
-
-  //update admin
-  await db
-    .collection('admin')
-    .updateOne(
-      { _id: new ObjectID(adminToUpdate) },
-      { $set: { permissions, role } },
-      async (err, data) => {
-        if (err) {
-          return res.status(500).json({
-            msg: 'Database error try again or contact support',
+    //update admin
+    await db
+      .collection('admin')
+      .updateOne(
+        { email },
+        { $set: { permissions, role } },
+        async (err, data) => {
+          if (err) {
+            return res.status(500).json({
+              msg: errorMessages.database.serverError,
+            });
+          }
+          //log admin activity
+          await adminActionsLogger({
+            type: 'update',
+            date: Date.now(),
+            creator: admin,
+            isSuccess: true,
+            log: `${actionAdminEmail} updated ${admin.email} admin account`,
+          });
+          return res.status(201).json({
+            data: `You have successfully updated ${admin.email} admin account`,
           });
         }
-        //log admin activity
-        await adminActionsLogger({
-          type: 'update',
-          date: Date.now(),
-          creator: admin,
-          isSuccess: true,
-          log: `${isAdmin.email} updated ${isAdminToUpdateExist.email} admin account`,
-        });
-        return res.status(201).json({
-          data: `You have successfully updated ${isAdminToUpdateExist.email} admin account`,
-        });
-      }
-    );
-});
+      );
+  }
+);
 
 export default router;
