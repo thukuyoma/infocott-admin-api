@@ -6,10 +6,13 @@ export default function uploader(destination) {
   if (process.env.NODE_ENV === 'production') {
     var storage = multer.diskStorage({
       destination(req, file, cb) {
-        cb(null, path.resolve(__dirname, 'dist'));
+        cb(null, path.resolve(__dirname, 'build'));
       },
       filename(req, file, cb) {
-        cb(null, file.fieldname + '_' + Date.now() + '_' + file.originalname);
+        cb(
+          null,
+          `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+        );
       },
     });
   } else {
@@ -19,6 +22,10 @@ export default function uploader(destination) {
       },
       filename(req, file, cb) {
         cb(null, file.fieldname + '_' + Date.now() + '_' + file.originalname);
+        cb(
+          null,
+          `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
+        );
       },
     });
   }
