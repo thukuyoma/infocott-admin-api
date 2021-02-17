@@ -4,6 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import colors from 'colors';
 import bodyParser from 'body-parser';
+import path from 'path';
 
 import {
   register,
