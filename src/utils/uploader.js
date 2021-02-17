@@ -4,7 +4,7 @@ import colors from 'colors';
 
 export default function uploader(destination) {
   if (process.env.NODE_ENV === 'production') {
-    const storage = multer.diskStorage({
+    var storage = multer.diskStorage({
       destination(req, file, cb) {
         cb(null, path.resolve(__dirname, 'dist'));
       },
@@ -16,7 +16,7 @@ export default function uploader(destination) {
       },
     });
   } else {
-    const storage = multer.diskStorage({
+    var storage = multer.diskStorage({
       destination(req, file, cb) {
         cb(null, path.resolve(__dirname, 'uploads'));
       },
