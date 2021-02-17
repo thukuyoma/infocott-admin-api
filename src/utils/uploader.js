@@ -9,10 +9,7 @@ export default function uploader(destination) {
         cb(null, path.resolve(__dirname, 'dist'));
       },
       filename(req, file, cb) {
-        cb(
-          null,
-          `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-        );
+        cb(null, file.fieldname + '_' + Date.now() + '_' + file.originalname);
       },
     });
   } else {
@@ -21,10 +18,7 @@ export default function uploader(destination) {
         cb(null, path.resolve(__dirname, 'uploads'));
       },
       filename(req, file, cb) {
-        cb(
-          null,
-          `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-        );
+        cb(null, file.fieldname + '_' + Date.now() + '_' + file.originalname);
       },
     });
   }
