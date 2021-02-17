@@ -54,6 +54,7 @@ export default function uploader(destination) {
   return upload;
 }
 
+console.log(path.resolve(__dirname, 'build'));
 // https://stackoverflow.com/questions/50566277/uploading-image-to-heroku-using-node-and-multer-not-work
 // const multer = require('multer');
 // const path = require('path');
