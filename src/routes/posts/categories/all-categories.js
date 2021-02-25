@@ -7,7 +7,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const { db } = await connectToDatabase();
 
-  const categories = await db.collection('categories').find({}).toArray();
+  const categories = await db
+    .collection('categories')
+    .find({})
+    .sort({ timestamp: -1 })
+    .toArray();
   return res.status(200).json({
     categories,
   });

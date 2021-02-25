@@ -29,7 +29,13 @@ import {
   setPostAlert,
   setSection,
 } from './routes/settings';
-import { writePost, updatePost, getAuthor, allPosts } from './routes/posts';
+import {
+  writePost,
+  updatePost,
+  getAuthor,
+  allPosts,
+  postDetails,
+} from './routes/posts';
 import {
   viewCategory,
   getAllCategories,
@@ -70,8 +76,6 @@ app.use('/accounts/', userChecker);
 app.use('/accounts/', getPublicAdmin);
 app.use('/accounts/', allPublicAdmins);
 
-// app.use('/accounts/', profile);
-
 //post
 // app.use('/posts/', write);
 // app.use('/posts/', getHomePost);
@@ -83,6 +87,7 @@ app.use('/posts/', updatePost);
 app.use('/posts/', writePost);
 app.use('/posts/', getAuthor);
 app.use('/posts/', allPosts);
+app.use('/posts/', postDetails);
 
 // filters
 app.use('/posts/filters/', communityPosts);

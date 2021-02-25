@@ -1,12 +1,11 @@
 import express from 'express';
 import connectToDatabase from '../../config/db';
-import { ObjectID } from 'mongodb';
-import adminActionsLogger from '../../utils/actions-logger';
 import checkAuthToken from '../../utils/check-auth-token';
 import { errorMessages } from '../../constants/error-messages';
 import checkValidAdmin from '../../utils/check-valid-admin';
-import havePermission from '../../utils/check-permission';
 import checkPermission from '../../utils/check-permission';
+import actionsLogger from '../../utils/actions-logger';
+import responseStatus from '../../constants/response-status';
 
 const router = express.Router();
 router.post(
@@ -15,7 +14,7 @@ router.post(
   checkValidAdmin,
   checkPermission({ service: 'accounts', permit: 'canMakeAdmin' }),
   async (req, res) => {
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminEmail, adminFullName, adminId } = req;
 
     const { userToMakeAdmin, permissions, role } = req.body;
     const { db } = await connectToDatabase();
@@ -25,8 +24,8 @@ router.post(
       .collection('users')
       .findOne({ email: userToMakeAdmin }, { projection: { password: 0 } });
     if (!isUser) {
-      return res.status(404).json({
-        msg: errorMessages.users.forOhFour,
+      return res.status(responseStatus.notFound).json({
+        msg: errorMessages.users.notFound,
       });
     }
 
@@ -35,7 +34,7 @@ router.post(
       .collection('admin')
       .findOne({ email: userToMakeAdmin });
     if (isAlreadyAnAdmin) {
-      return res.status(409).json({
+      return res.status(responseStatus.isExist).json({
         msg: errorMessages.admin.isExist,
       });
     }
@@ -45,7 +44,7 @@ router.post(
       email: isUser.email,
       role,
       permissions,
-      createdBy: actionAdminEmail,
+      createdBy: adminEmail,
       createdOn: Date.now(),
     };
 
@@ -58,16 +57,15 @@ router.post(
           });
         }
         //log admin activity
-        await adminActionsLogger({
-          type: 'create',
+        await actionsLogger.logger({
+          type: actionsLogger.type.account.makeAdmin,
           date: Date.now(),
-          createdBy: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `made ${isUser.email} an admin`,
           isSuccess: true,
-          log: `${actionAdminEmail} made ${isUser.email} as an admin`,
         });
-        return res.status(201).json({
-          payload: `You have successfully made ${userToMakeAdmin} an admin`,
-        });
+        return res.status(responseStatus.okay).json(isUser.email);
       });
   }
 );

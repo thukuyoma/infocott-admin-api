@@ -1,7 +1,7 @@
 import express from 'express';
 import connectToDatabase from '../../config/db';
 import { errorMessages } from '../../constants/error-messages';
-import adminActionsLogger from '../../utils/actions-logger';
+import responseStatus from '../../constants/response-status';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkPermission from '../../utils/check-permission';
 import checkValidAdmin from '../../utils/check-valid-admin';
@@ -13,7 +13,6 @@ router.get(
   checkValidAdmin,
   checkPermission({ service: 'accounts', permit: 'canGetAdmin' }),
   async (req, res) => {
-    const { adminEmail: actionAdminEmail } = req;
     const { db } = await connectToDatabase();
     const admin = await db
       .collection('admin')
@@ -26,14 +25,7 @@ router.get(
         }
       )
       .toArray();
-    await adminActionsLogger({
-      type: 'get',
-      date: Date.now(),
-      creator: actionAdminEmail,
-      isSuccess: true,
-      log: `${actionAdminEmail} requested all admin accounts`,
-    });
-    return res.status(200).json(admin);
+    return res.status(responseStatus.okay).json(admin);
   }
 );
 

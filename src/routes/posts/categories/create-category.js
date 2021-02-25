@@ -1,10 +1,11 @@
 import express from 'express';
 import connectToDatabase from '../../../config/db';
-import adminActionsLogger from '../../../utils/actions-logger';
 import checkAuthToken from '../../../utils/check-auth-token';
 import checkValidAdmin from '../../../utils/check-valid-admin';
 import checkPermission from '../../../utils/check-permission';
 import { errorMessages } from '../../../constants/error-messages';
+import actionsLogger from '../../../utils/actions-logger';
+import responseStatus from '../../../constants/response-status';
 
 const router = express.Router();
 
@@ -15,15 +16,16 @@ router.post(
   checkPermission({ service: 'posts', permit: 'canCreateCategory' }),
   async (req, res) => {
     const { title, description } = req.body;
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminId, adminEmail, adminFullName } = req;
+    console.log({ adminId });
     if (!title) {
       return res
-        .status(422)
+        .status(responseStatus.inValidData)
         .json({ msg: errorMessages.category.titleRequired });
     }
     if (!description) {
       return res
-        .status(422)
+        .status(responseStatus.inValidData)
         .json({ msg: errorMessages.category.decriptionRequired });
     }
 
@@ -34,11 +36,13 @@ router.post(
       .findOne({ title: title.toLowerCase() });
 
     if (category) {
-      return res.status(409).json({ msg: errorMessages.category.isExist });
+      return res
+        .status(responseStatus.isExist)
+        .json({ msg: errorMessages.category.isExist });
     }
 
     const newCategory = {
-      createdBy: actionAdminEmail,
+      createdBy: adminId,
       title: title.toLowerCase(),
       description,
       timestamp: Date.now(),
@@ -48,23 +52,17 @@ router.post(
       .collection('categories')
       .insertOne(newCategory, async (err, data) => {
         if (err) {
-          await adminActionsLogger({
-            type: 'create',
-            date: Date.now(),
-            creator: actionAdminEmail,
-            isSuccess: false,
-            log: `${actionAdminEmail} denied permission to create ${title} category`,
-          });
           return res
-            .status(500)
+            .status(responseStatus.serverError)
             .json({ msg: errorMessages.database.serverError });
         }
-        await adminActionsLogger({
-          type: 'create',
+        await actionsLogger.logger({
+          type: actionsLogger.type.category.createCategory,
           date: Date.now(),
-          creator: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `created ${title} category`,
           isSuccess: true,
-          log: `${actionAdminEmail} added ${title} to categories`,
         });
         return res.status(201).json(`${title} category created`);
       });

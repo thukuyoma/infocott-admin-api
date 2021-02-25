@@ -1,7 +1,7 @@
 const responseStatus = {
   okay: 200,
   created: 201,
-  unAuthourized: 401,
+  notAuthourized: 401,
   notFound: 404,
   isExist: 409,
   inValidData: 422,

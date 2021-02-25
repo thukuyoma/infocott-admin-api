@@ -2,7 +2,7 @@ import express from 'express';
 import connectToDatabase from '../../config/db';
 import { errorMessages } from '../../constants/error-messages';
 import responseStatus from '../../constants/response-status';
-import adminActionsLogger from '../../utils/actions-logger';
+import actionsLogger from '../../utils/actions-logger';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkPermission from '../../utils/check-permission';
 import checkValidAdmin from '../../utils/check-valid-admin';
@@ -17,7 +17,7 @@ router.post(
   async (req, res) => {
     const { sectionNumber } = req.params;
     const { category } = req.body;
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminFullName, adminId } = req;
     const { db } = await connectToDatabase();
     const allSectionNumbers = [
       'one',
@@ -66,12 +66,13 @@ router.post(
             .json({ msg: errorMessages.database.serverError });
         }
 
-        await adminActionsLogger({
-          type: 'settings',
+        await actionsLogger.logger({
+          type: actionsLogger.type.posts.setPostSections,
           date: Date.now(),
-          creator: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `set section ${sectionNumber} as ${category} category`,
           isSuccess: true,
-          log: `${actionAdminEmail} set section ${sectionNumber} to ${category} category`,
         });
         return res
           .status(responseStatus.okay)

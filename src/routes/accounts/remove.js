@@ -1,7 +1,8 @@
 import express from 'express';
 import connectToDatabase from '../../config/db';
 import { errorMessages } from '../../constants/error-messages';
-import adminActionsLogger from '../../utils/actions-logger';
+import responseStatus from '../../constants/response-status';
+import actionsLogger from '../../utils/actions-logger';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkPermission from '../../utils/check-permission';
 import checkValidAdmin from '../../utils/check-valid-admin';
@@ -15,7 +16,7 @@ router.delete(
   async (req, res) => {
     const { adminToDeleteEmail } = req.params;
     const { db } = await connectToDatabase();
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminId, adminFullName } = req;
 
     //check if admin to delete exist
     const admin = await db
@@ -32,17 +33,18 @@ router.delete(
       .collection('admin')
       .deleteOne({ email: adminToDeleteEmail }, async (err, data) => {
         if (err) {
-          return res.status(500).json({
-            msg: 'Database error try again or contact support',
+          return res.status(responseStatus.serverError).json({
+            msg: errorMessages.database.serverError,
           });
         }
         //log admin activity
-        await adminActionsLogger({
-          type: 'delete',
+        await actionsLogger.logger({
+          type: actionsLogger.type.account.deleteAdmin,
           date: Date.now(),
-          creator: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `deleted ${adminToDeleteEmail} from admin`,
           isSuccess: true,
-          log: `${actionAdminEmail} removed ${admin.email} as an admin`,
         });
         return res.status(200).json({
           data: `You have successfully removed ${admin.email} as an admin`,

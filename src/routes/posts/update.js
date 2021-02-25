@@ -7,11 +7,16 @@ import connectToDatabase from '../../config/db';
 import checkToken from '../../utils/check-auth-token';
 import uploader from '../../utils/uploader';
 import { errorMessages } from '../../constants/error-messages';
+import actionsLogger from '../../utils/actions-logger';
+import checkValidAdmin from '../../utils/check-valid-admin';
+import checkPermission from '../../utils/check-permission';
 
 const router = express.Router();
 router.put(
   '/update/:postId',
   checkToken,
+  checkValidAdmin,
+  checkPermission({ service: 'posts', permit: 'canUpdatePost' }),
   uploader('/images/posts/').single('image'),
   async (req, res) => {
     //extract all request data
@@ -31,7 +36,7 @@ router.put(
 
     const path = file ? file.path : '';
 
-    const { adminId } = req;
+    const { adminId, adminFullName } = req;
     const { postId } = req.params;
 
     const admin = await db
@@ -91,9 +96,7 @@ router.put(
             caption: imageCaption && imageCaption,
             source: imageSource && imageSource,
           }
-        : postToUpdate.image !== null
-        ? post.image
-        : null,
+        : postToUpdate.image,
       allowComment: JSON.parse(allowComment),
       timestamp: Date.now(),
       slug: `${slug}-${postId}`,
@@ -112,6 +115,14 @@ router.put(
         if (err) {
           return res.status(500).json({ msg: err });
         }
+        await actionsLogger.logger({
+          type: actionsLogger.type.posts.updatePost,
+          date: Date.now(),
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `updated post ( ${title} )`,
+          isSuccess: true,
+        });
         return res.status(201).json({ slug: `${slug}-${postId}` });
       }
     );

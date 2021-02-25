@@ -3,7 +3,6 @@ import connectToDatabase from '../config/db';
 import { errorMessages } from '../constants/error-messages';
 
 export default function checkPermission({ service, permit }) {
-  console.log({ service, permit });
   return async (req, res, next) => {
     const { adminId } = req;
     const { db } = await connectToDatabase();

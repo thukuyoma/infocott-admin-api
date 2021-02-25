@@ -1,20 +1,19 @@
 import express from 'express';
-import { ObjectID } from 'mongodb';
 import connectToDatabase from '../../config/db';
 import { errorMessages } from '../../constants/error-messages';
-import adminActionsLogger from '../../utils/actions-logger';
+import actionsLogger from '../../utils/actions-logger';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkPermission from '../../utils/check-permission';
 import checkValidAdmin from '../../utils/check-valid-admin';
 
 const router = express.Router();
 router.put(
-  '/:email',
+  '/update/:email',
   checkAuthToken,
   checkValidAdmin,
   checkPermission({ service: 'accounts', permit: 'canUpdateAdmin' }),
   async (req, res) => {
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminId, adminFullName } = req;
     const { permissions, role } = req.body;
     const { email } = req.params;
     const { db } = await connectToDatabase();
@@ -40,16 +39,17 @@ router.put(
             });
           }
           //log admin activity
-          await adminActionsLogger({
-            type: 'update',
+          await actionsLogger.logger({
+            type: actionsLogger.type.account.updateAdmin,
             date: Date.now(),
-            creator: admin,
+            createdBy: adminId,
+            createdByFullName: adminFullName,
+            activity: `updated ${email} admin account`,
             isSuccess: true,
-            log: `${actionAdminEmail} updated ${admin.email} admin account`,
           });
-          return res.status(201).json({
-            data: `You have successfully updated ${admin.email} admin account`,
-          });
+          return res
+            .status(201)
+            .json(`You have successfully updated ${admin.email} admin account`);
         }
       );
   }

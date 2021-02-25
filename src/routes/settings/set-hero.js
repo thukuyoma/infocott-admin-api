@@ -1,12 +1,11 @@
 import express from 'express';
 import connectToDatabase from '../../config/db';
-import { ObjectID } from 'mongodb';
-import adminActionsLogger from '../../utils/actions-logger';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkValidAdmin from '../../utils/check-valid-admin';
 import checkPermission from '../../utils/check-permission';
 import { errorMessages } from '../../constants/error-messages';
 import responseStatus from '../../constants/response-status';
+import actionsLogger from '../../utils/actions-logger';
 
 const router = express.Router();
 router.post(
@@ -15,7 +14,7 @@ router.post(
   checkValidAdmin,
   checkPermission({ service: 'settings', permit: 'canSetHero' }),
   async (req, res) => {
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminFullName, adminId } = req;
     const { heroType } = req.body;
     const { postSlug } = req.params;
     const { db } = await connectToDatabase();
@@ -66,12 +65,13 @@ router.post(
             .status(responseStatus.serverError)
             .json({ msg: errorMessages.database.serverError });
         }
-        await adminActionsLogger({
-          type: 'settings',
+        await actionsLogger.logger({
+          type: actionsLogger.type.posts.setHero,
           date: Date.now(),
-          creator: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `set ${postSlug} as hero post`,
           isSuccess: true,
-          log: `${actionAdminEmail} added ${post.slug} to hero list`,
         });
         res
           .status(responseStatus.created)

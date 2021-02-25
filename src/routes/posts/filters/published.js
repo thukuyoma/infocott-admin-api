@@ -10,6 +10,7 @@ router.get('/published', checkAuthToken, checkValidAdmin, async (req, res) => {
   const posts = await db
     .collection('posts')
     .find({ 'status.published': true })
+    .sort({ timestamp: -1 })
     .toArray();
   return res.status(200).json({ posts });
 });

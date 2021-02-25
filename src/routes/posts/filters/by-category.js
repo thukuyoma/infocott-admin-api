@@ -12,7 +12,11 @@ router.get(
   async (req, res) => {
     const { db } = await connectToDatabase();
     const { category } = req.params;
-    const posts = await db.collection('posts').find({ category }).toArray();
+    const posts = await db
+      .collection('posts')
+      .find({ category })
+      .sort({ timestamp: -1 })
+      .toArray();
     return res.status(200).json({ posts });
   }
 );

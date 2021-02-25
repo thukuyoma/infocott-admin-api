@@ -7,7 +7,11 @@ const router = express.Router();
 
 router.get('/community', checkAuthToken, checkValidAdmin, async (req, res) => {
   const { db } = await connectToDatabase();
-  const posts = await db.collection('posts').find({ admin: null }).toArray();
+  const posts = await db
+    .collection('posts')
+    .find({ admin: null })
+    .sort({ timestamp: -1 })
+    .toArray();
   return res.status(200).json({ posts });
 });
 

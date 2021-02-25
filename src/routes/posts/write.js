@@ -7,11 +7,15 @@ import connectToDatabase from '../../config/db';
 import checkToken from '../../utils/check-auth-token';
 import uploader from '../../utils/uploader';
 import { errorMessages } from '../../constants/error-messages';
+import checkValidAdmin from '../../utils/check-valid-admin';
+import checkPermission from '../../utils/check-permission';
 
 const router = express.Router();
 router.post(
   '/write',
   checkToken,
+  checkValidAdmin,
+  checkPermission({ service: 'posts', permit: 'canWritePost' }),
   uploader('/images/posts/').single('image'),
   async (req, res) => {
     //extract all request data
@@ -29,28 +33,28 @@ router.post(
       allowComment,
     } = post;
 
+    const {
+      adminId,
+      adminEmail,
+      adminFirstName,
+      adminLastName,
+      fullName,
+    } = req;
+
+    console.log({
+      adminId,
+      adminEmail,
+      adminFirstName,
+      adminLastName,
+      fullName,
+    });
     const path = file ? file.path : '';
 
-    const { adminId } = req;
-
-    const admin = await db
-      .collection('admin')
-      .findOne({ _id: new ObjectID(adminId) });
-    if (!admin) {
-      return res.status(404).json({ msg: errorMessages.admin.notFound });
-    }
-
-    // check if the associated author exist
     const isAuthor = await db.collection('users').findOne({ email: author });
     if (author && !isAuthor) {
       return res.status(404).json({ msg: errorMessages.posts.AuthorNotFound });
     }
 
-    if (!admin.permissions.posts.canWritePost) {
-      return res.status(401).json({ msg: errorMessages.admin.fourOhOne });
-    }
-
-    //validate post
     const validatedPost = postValidator({ ...post, image: path });
     if (Object.keys(validatedPost).length !== 0) {
       return res.status(400).json({ msg: validatedPost });
@@ -65,7 +69,7 @@ router.post(
       category: category.toLowerCase(),
       body,
       description,
-      author: author ? author : admin.email,
+      author: author ? author : adminEmail,
       admin: adminId,
       status: {
         hide: false,

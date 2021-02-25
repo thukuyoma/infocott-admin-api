@@ -1,11 +1,10 @@
 import express from 'express';
 import connectToDatabase from '../../../config/db';
-import { ObjectID } from 'mongodb';
-import adminActionsLogger from '../../../utils/actions-logger';
 import { errorMessages } from '../../../constants/error-messages';
 import checkAuthToken from '../../../utils/check-auth-token';
 import checkValidAdmin from '../../../utils/check-valid-admin';
 import checkPermission from '../../../utils/check-permission';
+import actionsLogger from '../../../utils/actions-logger';
 
 const router = express.Router();
 
@@ -16,7 +15,7 @@ router.put(
   checkPermission({ service: 'posts', permit: 'canUpdateCategory' }),
   async (req, res) => {
     const { categoryTitle } = req.params;
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminId, adminFullName } = req;
     const { title, description } = req.body;
     if (!categoryTitle) {
       return res.status(422).json({ msg: errorMessages.category.catRequired });
@@ -43,7 +42,6 @@ router.put(
     }
 
     const updateCategory = {
-      createdBy: actionAdminEmail,
       title: title.toLowerCase(),
       description,
       timestamp: Date.now(),
@@ -62,12 +60,13 @@ router.put(
             .status(500)
             .json({ msg: errorMessages.database.serverError });
         }
-        await adminActionsLogger({
-          type: 'update',
+        await actionsLogger.logger({
+          type: actionsLogger.type.category.updateCategory,
           date: Date.now(),
-          creator: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `updated ${categoryTitle} category`,
           isSuccess: true,
-          log: `${actionAdminEmail} updated ${title} category details`,
         });
         return res.status(200).json(`${title} category updated successfully`);
       }

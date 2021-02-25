@@ -14,6 +14,7 @@ router.get(
     const posts = await db
       .collection('posts')
       .find({ 'status.published': false })
+      .sort({ timestamp: -1 })
       .toArray();
     return res.status(200).json({ posts });
   }

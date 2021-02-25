@@ -1,8 +1,5 @@
 import express from 'express';
 import connectToDatabase from '../../config/db';
-import { ObjectID } from 'mongodb';
-import adminActionsLogger from '../../utils/actions-logger';
-import checkToken from '../../utils/check-auth-token';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkValidAdmin from '../../utils/check-valid-admin';
 

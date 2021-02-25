@@ -1,12 +1,11 @@
 import express from 'express';
 import connectToDatabase from '../../config/db';
-import { ObjectID } from 'mongodb';
-import adminActionsLogger from '../../utils/actions-logger';
 import checkAuthToken from '../../utils/check-auth-token';
 import checkValidAdmin from '../../utils/check-valid-admin';
 import checkPermission from '../../utils/check-permission';
 import { errorMessages } from '../../constants/error-messages';
 import responseStatus from '../../constants/response-status';
+import actionsLogger from '../../utils/actions-logger';
 
 const router = express.Router();
 router.post(
@@ -15,7 +14,7 @@ router.post(
   checkValidAdmin,
   checkPermission({ service: 'settings', permit: 'canSetPostAlert' }),
   async (req, res) => {
-    const { adminEmail: actionAdminEmail } = req;
+    const { adminId, adminFullName } = req;
     const { postSlug } = req.params;
     const { db } = await connectToDatabase();
 
@@ -58,12 +57,13 @@ router.post(
             .status(responseStatus.serverError)
             .json({ msg: errorMessages.database.serverError });
         }
-        await adminActionsLogger({
-          type: 'settings',
+        await actionsLogger.logger({
+          type: actionsLogger.type.posts.setPostAlert,
           date: Date.now(),
-          creator: actionAdminEmail,
+          createdBy: adminId,
+          createdByFullName: adminFullName,
+          activity: `set ${postSlug} as alert`,
           isSuccess: true,
-          log: `${actionAdminEmail} added ${post.slug} to post alert list`,
         });
         res
           .status(responseStatus.created)
