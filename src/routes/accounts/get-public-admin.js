@@ -25,17 +25,20 @@ router.get(
     }
     const user = await db
       .collection('users')
-      .findOne({ email: admin.createdBy });
+      .findOne({ email: adminProfileToGet });
     const createdBy = await db
       .collection('users')
       .findOne({ email: admin.createdBy });
+
     return res.status(200).json({
       firstName: user.firstName,
       lastName: user.lastName,
+      avatar: user.avatar,
       ...admin,
       createdBy: {
         firstName: createdBy.firstName,
         lastName: createdBy.lastName,
+        avatar: createdBy.avatar,
       },
     });
   }

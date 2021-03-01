@@ -23,7 +23,9 @@ import {
 } from './routes/accounts';
 
 import {
+  getAlertPost,
   getHeroes,
+  getPostAlert,
   getSections,
   setHero,
   setPostAlert,
@@ -35,6 +37,9 @@ import {
   getAuthor,
   allPosts,
   postDetails,
+  deletePost,
+  unPublishPost,
+  publishPost,
 } from './routes/posts';
 import {
   viewCategory,
@@ -88,6 +93,9 @@ app.use('/posts/', writePost);
 app.use('/posts/', getAuthor);
 app.use('/posts/', allPosts);
 app.use('/posts/', postDetails);
+app.use('/posts/', deletePost);
+app.use('/posts/', unPublishPost);
+app.use('/posts/', publishPost);
 
 // filters
 app.use('/posts/filters/', communityPosts);
@@ -108,6 +116,7 @@ app.use('/settings/', getHeroes);
 app.use('/settings/', setPostAlert);
 app.use('/settings/', setSection);
 app.use('/settings/', getSections);
+app.use('/settings/', getPostAlert);
 
 app.get('/', (req, res) => {
   return res.status(200).json('Welcome to odemru technologies');

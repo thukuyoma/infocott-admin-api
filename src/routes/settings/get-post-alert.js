@@ -4,17 +4,13 @@ import checkAuthToken from '../../utils/check-auth-token';
 import checkValidAdmin from '../../utils/check-valid-admin';
 
 const router = express.Router();
-router.get('/heroes', checkAuthToken, checkValidAdmin, async (req, res) => {
+router.get('/post-alert', checkAuthToken, checkValidAdmin, async (req, res) => {
   const { db } = await connectToDatabase();
-  await db.collection('settings').findOne({ tag: 'hero' }, (err, data) => {
+  await db.collection('settings').findOne({ tag: 'alert' }, (err, data) => {
     if (err) {
       res.status(500).json({ msg: 'database error' });
     }
-    return res.status(200).json({
-      heroMain: data.heroMain,
-      heroLeft: data.heroLeft,
-      heroRight: data.heroRight,
-    });
+    return res.status(200).json({ alert: data.alert });
   });
 });
 
