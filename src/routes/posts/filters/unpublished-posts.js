@@ -6,7 +6,7 @@ import checkValidAdmin from '../../../utils/check-valid-admin';
 
 const router = express.Router();
 
-router.put(
+router.get(
   '/unpublished',
   checkAuthToken,
   checkValidAdmin,
@@ -26,7 +26,6 @@ router.put(
       .sort({ timestamp: -1 })
       .toArray();
     const totalPages = Math.ceil(documentCount / pageLimit);
-
     return res.status(responseStatus.okay).json({
       hasMore: page >= totalPages ? false : true,
       totalPages,
