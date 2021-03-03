@@ -34,10 +34,12 @@ export default async function connectToDatabase() {
       useUnifiedTopology: true,
     };
 
-    cached.promise = MongoClient.connect(MONGODB_URI, opts).then((client) => ({
-      client,
-      db: client.db(MONGODB_DB),
-    }));
+    cached.promise = MongoClient.connect(MONGODB_URI, opts)
+      .then((client) => ({
+        client,
+        db: client.db(MONGODB_DB),
+      }))
+      .catch((err) => new Error(err));
   }
   cached.conn = await cached.promise;
   return cached.conn;

@@ -25,7 +25,7 @@ export default function uploader(destination) {
     if (extname && mimetype) {
       return cb(null, true);
     } else {
-      cb('Images only!');
+      cb(new Error('Only JPG, JPEG, and PNG images are accepted!'));
     }
   }
 

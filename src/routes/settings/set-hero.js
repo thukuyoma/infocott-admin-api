@@ -73,7 +73,7 @@ router.post(
           activity: `set ${postSlug} as hero post`,
           isSuccess: true,
         });
-        res
+        return res
           .status(responseStatus.created)
           .send(`You have successfully added this post to hero list`);
       }

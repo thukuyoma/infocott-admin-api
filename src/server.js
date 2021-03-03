@@ -54,6 +54,20 @@ import {
   unPublishedPosts,
   byCategory,
 } from './routes/posts/filters';
+import {
+  createVideoUrl,
+  deleteVideoUrl,
+  getVideoUrls,
+} from './routes/settings/videos';
+import {
+  createAdvert,
+  getAdverts,
+  publishAdvert,
+  unPublishAdvert,
+  updateAdvert,
+} from './routes/settings/adverts';
+import notFound from './middlewares/not-found';
+import errorHandler from './middlewares/error-handler';
 
 const app = express();
 
@@ -117,10 +131,21 @@ app.use('/settings/', setPostAlert);
 app.use('/settings/', setSection);
 app.use('/settings/', getSections);
 app.use('/settings/', getPostAlert);
+app.use('/settings/', createVideoUrl);
+app.use('/settings/', getVideoUrls);
+app.use('/settings/', deleteVideoUrl);
+app.use('/settings/', createAdvert);
+app.use('/settings/', updateAdvert);
+app.use('/settings/', getAdverts);
+app.use('/settings/', unPublishAdvert);
+app.use('/settings/', publishAdvert);
 
 app.get('/', (req, res) => {
   return res.status(200).json('Welcome to odemru technologies');
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5005;
 
