@@ -62,6 +62,7 @@ import {
 import {
   createAdvert,
   deleteAdvert,
+  getAdvertDetails,
   getAdverts,
   publishAdvert,
   unPublishAdvert,
@@ -141,6 +142,7 @@ app.use('/settings/', getAdverts);
 app.use('/settings/', unPublishAdvert);
 app.use('/settings/', publishAdvert);
 app.use('/settings/', deleteAdvert);
+app.use('/settings/', getAdvertDetails);
 
 app.get('/', (req, res) => {
   return res.status(200).json('Welcome to odemru technologies');

@@ -4,6 +4,7 @@ import getAdverts from './get-adverts';
 import unPublishAdvert from './unpublish-advert';
 import publishAdvert from './publish-advert';
 import deleteAdvert from './delete-advert';
+import getAdvertDetails from './get-adverts-details';
 
 export {
   createAdvert,
@@ -12,4 +13,5 @@ export {
   publishAdvert,
   unPublishAdvert,
   deleteAdvert,
+  getAdvertDetails,
 };

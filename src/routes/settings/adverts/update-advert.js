@@ -22,7 +22,7 @@ router.put(
     const { db } = await connectToDatabase();
     const { adminFullName, adminId, file } = req;
     const {
-      url,
+      redirectUrl,
       expiresAt,
       client,
       isPublished,
@@ -66,15 +66,21 @@ router.put(
 
     const timeToExpire = parseInt(expiresAt);
     const advertToUpdateMarkup = {
-      url,
+      redirectUrl,
       expiresAt: timeToExpire,
       client,
-      isPublished,
+      isPublished: JSON.parse(isPublished),
       description,
       amount,
-      adminFullName,
-      adminId,
-      advertImageUrl: imageUrl ? imageUrl : advert.advertImageUrl,
+      timestamp: Date.now(),
+      createdBy: {
+        id: adminId,
+        fullName: adminFullName,
+      },
+      advertImage:
+        path && imageUrl
+          ? { url: imageUrl, type, typeName, height, width }
+          : advert.advertImage,
     };
     await db
       .collection('adverts')
