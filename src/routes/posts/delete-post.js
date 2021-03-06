@@ -20,11 +20,13 @@ router.delete(
     const post = await db
       .collection('posts')
       .findOne({ _id: new ObjectID(postId) });
-    if (!post)
+    if (!post) {
       return res
         .status(responseStatus.notFound)
         .json({ msg: errorMessages.posts.notFound });
+    }
     const { adminId, adminFullName } = req;
+    await db.collection('deletedPosts').insertOne(post);
     await db
       .collection('posts')
       .deleteOne({ _id: new ObjectID(postId) }, async (err, data) => {

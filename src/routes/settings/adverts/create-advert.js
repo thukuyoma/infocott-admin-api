@@ -17,24 +17,28 @@ router.post(
   checkAuthToken,
   checkValidAdmin,
   checkPermission({ service: 'settings', permit: 'canSetAdvert' }),
-  uploader().single('advert-image'),
+  uploader().single('advertImage'),
   async (req, res) => {
     const { db } = await connectToDatabase();
     const { adminFullName, adminId, file } = req;
     const {
-      url,
+      redirectUrl,
       expiresAt,
       client,
       isPublished,
       description,
       amount,
+      type,
+      typeName,
+      height,
+      width,
     } = req.body;
     const path = file ? file.path : '';
     // return res.send(expiresAt);
     if (!client) {
       return res
         .status(responseStatus.inValidData)
-        .json({ msg: 'Time for advert to expires is required' });
+        .json({ msg: 'Client is required' });
     }
     if (!amount) {
       return res
@@ -55,16 +59,18 @@ router.post(
 
     const timeToExpire = parseInt(expiresAt);
     const advertMarkUp = {
-      url,
+      redirectUrl,
       expiresAt: timeToExpire,
       client,
-      isPublished,
+      isPublished: JSON.parse(isPublished),
       description,
       amount,
       timestamp: Date.now(),
-      adminFullName,
-      adminId,
-      advertImageUrl: imageUrl,
+      createdBy: {
+        id: adminId,
+        fullName: adminFullName,
+      },
+      advertImage: { url: imageUrl, type, typeName, height, width },
     };
     await db
       .collection('adverts')

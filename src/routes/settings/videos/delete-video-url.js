@@ -15,11 +15,20 @@ router.delete(
     const { adminFullName, adminId } = req;
     const { db } = await connectToDatabase();
     const { urlId } = req.params;
-    if (!urlId)
+    if (!urlId) {
       return res
         .status(responseStatus.inValidData)
         .json({ msg: 'Video Url to delete is required' });
-
+    }
+    const videoUrl = await db
+      .collection('videoUrls')
+      .findOne({ _id: new ObjectID(urlId) });
+    if (!videoUrl) {
+      return res
+        .status(responseStatus.notFound)
+        .json({ msg: 'video url does not exist' });
+    }
+    await db.collection('deletedVideoUrls').insertOne(videoUrl);
     await db
       .collection('videoUrls')
       .deleteOne({ _id: new ObjectID(urlId) }, async (err, data) => {

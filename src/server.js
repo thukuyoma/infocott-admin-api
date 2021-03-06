@@ -61,6 +61,7 @@ import {
 } from './routes/settings/videos';
 import {
   createAdvert,
+  deleteAdvert,
   getAdverts,
   publishAdvert,
   unPublishAdvert,
@@ -139,6 +140,7 @@ app.use('/settings/', updateAdvert);
 app.use('/settings/', getAdverts);
 app.use('/settings/', unPublishAdvert);
 app.use('/settings/', publishAdvert);
+app.use('/settings/', deleteAdvert);
 
 app.get('/', (req, res) => {
   return res.status(200).json('Welcome to odemru technologies');
