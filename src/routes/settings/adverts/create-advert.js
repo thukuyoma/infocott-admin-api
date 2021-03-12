@@ -79,7 +79,7 @@ router.post(
           return res.status(500).json({ msg: err });
         }
         await actionsLogger.logger({
-          type: actionsLogger.type.posts.updatePost,
+          type: actionsLogger.type.settings.createAdvert,
           date: Date.now(),
           createdBy: adminId,
           createdByFullName: adminFullName,

@@ -9,6 +9,7 @@ import uploader from '../../utils/uploader';
 import { errorMessages } from '../../constants/error-messages';
 import checkValidAdmin from '../../utils/check-valid-admin';
 import checkPermission from '../../utils/check-permission';
+import actionsLogger from '../../utils/actions-logger';
 
 const router = express.Router();
 router.post(
@@ -33,21 +34,7 @@ router.post(
       allowComment,
     } = post;
 
-    const {
-      adminId,
-      adminEmail,
-      adminFirstName,
-      adminLastName,
-      fullName,
-    } = req;
-
-    console.log({
-      adminId,
-      adminEmail,
-      adminFirstName,
-      adminLastName,
-      fullName,
-    });
+    const { adminEmail, adminId, adminFullName } = req;
     const path = file ? file.path : '';
 
     const isAuthor = await db.collection('users').findOne({ email: author });
@@ -105,6 +92,14 @@ router.post(
           { upsert: true },
           async (err, slug) => {
             if (err) return res.status(500).json({ msg: err });
+            await actionsLogger.logger({
+              type: actionsLogger.type.posts.createPost,
+              date: Date.now(),
+              createdBy: adminId,
+              createdByFullName: adminFullName,
+              activity: `created posts titled: ${title}`,
+              isSuccess: true,
+            });
             await db
               .collection('posts')
               .findOne({ _id: new ObjectID(data.insertedId) }, (err, data) => {

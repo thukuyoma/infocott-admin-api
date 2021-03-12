@@ -20,6 +20,10 @@ const type = {
     updateCategory: 'updateCategory',
     deleteCategory: 'deleteCategory',
   },
+  settings: {
+    deleteAdvert: 'deleteAdvert',
+    createAdvert: 'createAdvert',
+  },
 };
 
 async function logger({

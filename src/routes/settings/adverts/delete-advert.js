@@ -38,11 +38,11 @@ router.delete(
             .json({ msg: errorMessages.database.serverError });
         }
         await actionsLogger.logger({
-          type: actionsLogger.type.posts.setHero,
+          type: actionsLogger.type.settings.deleteAdvert,
           date: Date.now(),
           createdBy: adminId,
           createdByFullName: adminFullName,
-          activity: `deleted ${advertId}`,
+          activity: `deleted ${advert.client} advert`,
           isSuccess: true,
         });
         return res

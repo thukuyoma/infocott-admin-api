@@ -21,10 +21,15 @@ router.get('/profile', checkAuthToken, checkValidAdmin, async (req, res) => {
     {
       projection: {
         password: 0,
-        _id: 0,
       },
     }
   );
+  console.log({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    ...admin,
+    avatar: user.avatar,
+  });
   return res.status(200).json({
     firstName: user.firstName,
     lastName: user.lastName,

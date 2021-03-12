@@ -23,6 +23,7 @@ import {
 } from './routes/accounts';
 
 import {
+  getAdminActionsLog,
   getAlertPost,
   getHeroes,
   getPostAlert,
@@ -70,6 +71,22 @@ import {
 } from './routes/settings/adverts';
 import notFound from './middlewares/not-found';
 import errorHandler from './middlewares/error-handler';
+import {
+  publishedPostsCount,
+  totalAdminActionsLog,
+  totalAdmins,
+  totalAdverts,
+  totalCategories,
+  totalComments,
+  totalCommunityPosts,
+  totalDeletedAdverts,
+  totalDeletedPosts,
+  totalDeletedVideoUrls,
+  totalPosts,
+  totalUsers,
+  totalVideoUrls,
+  unPublishedPostsCount,
+} from './routes/analytics';
 
 const app = express();
 
@@ -143,6 +160,22 @@ app.use('/settings/', unPublishAdvert);
 app.use('/settings/', publishAdvert);
 app.use('/settings/', deleteAdvert);
 app.use('/settings/', getAdvertDetails);
+app.use('/settings/', getAdminActionsLog);
+
+app.use('/analytics/', publishedPostsCount);
+app.use('/analytics/', unPublishedPostsCount);
+app.use('/analytics/', totalPosts);
+app.use('/analytics/', totalUsers);
+app.use('/analytics/', totalAdmins);
+app.use('/analytics/', totalAdverts);
+app.use('/analytics/', totalDeletedPosts);
+app.use('/analytics/', totalDeletedAdverts);
+app.use('/analytics/', totalVideoUrls);
+app.use('/analytics/', totalDeletedVideoUrls);
+app.use('/analytics/', totalComments);
+app.use('/analytics/', totalCategories);
+app.use('/analytics/', totalAdminActionsLog);
+app.use('/analytics/', totalCommunityPosts);
 
 app.get('/', (req, res) => {
   return res.status(200).json('Welcome to odemru technologies');
